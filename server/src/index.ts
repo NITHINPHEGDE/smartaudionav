@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import path from 'path';
 import dotenv from 'dotenv';
 
+import fs from 'fs';
 dotenv.config();
 
 import authRoutes from './routes/auth';
@@ -12,6 +13,14 @@ import placeRoutes from './routes/places';
 import sculptureRoutes from './routes/sculptures';
 import audioRoutes from './routes/audio';
 import bookmarkRoutes from './routes/bookmarks';
+// Ensure upload directories exist
+const dirs = ['uploads/audio', 'uploads/images'];
+dirs.forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+    console.log(`Created directory: ${dir}`);
+  }
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
