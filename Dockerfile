@@ -6,7 +6,9 @@ COPY server/package*.json ./
 RUN npm install --include=dev
 
 COPY server/prisma ./prisma
-RUN npx prisma generate
+
+# Generate Prisma client with a dummy URL (only needs schema, not real DB)
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 
 COPY server/ .
 RUN npm run build
