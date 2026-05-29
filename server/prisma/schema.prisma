@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(TOURIST)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookmarks  Bookmark[]
+  downloads  Download[]
+  feedbacks  Feedback[]
+}
+
+enum Role {
+  ADMIN
+  TOURIST
+}
+
+model TouristPlace {
+  id          String      @id @default(uuid())
+  name        String
+  location    String
+  description String
+  imageUrl    String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  sculptures  Sculpture[]
+}
+
+model Sculpture {
+  id              String       @id @default(uuid())
+  placeId         String
+  name            String
+  historicalInfo  String
+  significance    String
+  architecture    String
+  images          String[]
+  orderIndex      Int          @default(0)
+  nextSculptureId String?
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  place       TouristPlace  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  qrCode      QRCode?
+  audioGuides AudioGuide[]
+  bookmarks   Bookmark[]
+  downloads   Download[]
+  feedbacks   Feedback[]
+}
+
+model QRCode {
+  id           String    @id @default(uuid())
+  sculptureId  String    @unique
+  qrValue      String    @unique
+  qrImageBase64 String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sculpture    Sculpture @relation(fields: [sculptureId], references: [id], onDelete: Cascade)
+}
+
+model Language {
+  id          String       @id @default(uuid())
+  code        String       @unique
+  name        String
+  nativeName  String
+  isActive    Boolean      @default(true)
+
+  audioGuides AudioGuide[]
+}
+
+model AudioGuide {
+  id          String    @id @default(uuid())
+  sculptureId String
+  languageId  String
+  audioUrl    String
+  textContent String
+  duration    Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  sculpture   Sculpture @relation(fields: [sculptureId], references: [id], onDelete: Cascade)
+  language    Language  @relation(fields: [languageId], references: [id])
+
+  @@unique([sculptureId, languageId])
+}
+
+model Bookmark {
+  id          String    @id @default(uuid())
+  userId      String
+  sculptureId String
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sculpture   Sculpture @relation(fields: [sculptureId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sculptureId])
+}
+
+model Download {
+  id          String    @id @default(uuid())
+  userId      String
+  sculptureId String
+  languageId  String
+  localPath   String?
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sculpture   Sculpture @relation(fields: [sculptureId], references: [id], onDelete: Cascade)
+}
+
+model Feedback {
+  id          String    @id @default(uuid())
+  userId      String
+  sculptureId String
+  rating      Int
+  comment     String?
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sculpture   Sculpture @relation(fields: [sculptureId], references: [id], onDelete: Cascade)
+}
